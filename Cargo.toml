@@ -1,0 +1,44 @@
+[package]
+name = "kafka-dumper"
+version = "0.2.5"
+edition = "2024"
+authors = ["Outscale Infrastructure"]
+readme = "README.md"
+license = "BSD 3-Clause"
+repository = "https://github.com/outscale/KafkaDumper"
+publish = false
+
+[[bin]]
+name = "kafkadumper"
+path = "src/main.rs"
+
+[lib]
+name = "kafkadumper"
+path = "src/lib.rs"
+
+[profile.release]
+opt-level = 3
+lto = true
+strip = true
+
+[dependencies]
+rdkafka = { version = "0.39.0", features = ["cmake-build", "ssl-vendored"] }
+clap = { version = "4.5", features = ["derive"] }
+serde = { version = "1.0", features = ["derive"] }
+tokio = { version = "1.35", features = ["full"] }
+anyhow = "1.0"
+chrono = { version = "0.4", features = ["serde"] }
+indicatif = "0.18.3"
+parquet = "58.0.0"
+arrow = "58.0.0"
+glob = "0.3"
+serde_json = "1.0.149"
+hex = "0.4.3"
+reqwest = "0.12"
+protox = "0.8"
+prost-reflect = { version = "0.15", features = ["serde"] }
+prost = "0.13.5"
+
+[dev-dependencies]
+mockito = "1.2.0"
+tempfile = "3.25.0"
