@@ -24,10 +24,7 @@ impl KafkaProtobufConsumer {
         let response = self.client.get(&url).send().await?;
 
         if !response.status().is_success() {
-            return Err(anyhow!(
-                "Failed to retrieve schema: {}",
-                response.status()
-            ));
+            return Err(anyhow!("Failed to retrieve schema: {}", response.status()));
         }
 
         let schema = response.text().await?;
@@ -43,10 +40,7 @@ impl KafkaProtobufConsumer {
         let response = self.client.get(&url).send().await?;
 
         if !response.status().is_success() {
-            return Err(anyhow!(
-                "Failed to retrieve schema: {}",
-                response.status()
-            ));
+            return Err(anyhow!("Failed to retrieve schema: {}", response.status()));
         }
 
         let versions: Vec<i32> = serde_json::from_str(response.text().await?.as_str())?;

@@ -88,7 +88,10 @@ pub async fn export_topics(config: &ExportConfiguration) -> anyhow::Result<()> {
         for (topic, partition) in &elements {
             let (low, high) = consumer
                 .fetch_watermarks(topic, *partition, StdDuration::from_secs(30))
-                .context(format!("Failed to fetch watermarks {}:{}", topic, partition))?;
+                .context(format!(
+                    "Failed to fetch watermarks {}:{}",
+                    topic, partition
+                ))?;
 
             let start_offset = std::cmp::max(low, high - limit_per_part);
             tpl.set_partition_offset(topic, *partition, Offset::Offset(start_offset))?;
@@ -176,10 +179,7 @@ pub async fn export_topics(config: &ExportConfiguration) -> anyhow::Result<()> {
     }
 
     if messages.is_empty() {
-        println!(
-            "No messages retrieved from topics {:?}.",
-            config.topics
-        );
+        println!("No messages retrieved from topics {:?}.", config.topics);
         return Ok(());
     }
 
@@ -276,10 +276,7 @@ pub async fn export_topics(config: &ExportConfiguration) -> anyhow::Result<()> {
             )?;
         }
     } else {
-        println!(
-            "Writing to single file {}...",
-            output_path.display()
-        );
+        println!("Writing to single file {}...", output_path.display());
         write_parquet(
             &output_path,
             messages,

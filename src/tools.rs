@@ -201,10 +201,7 @@ pub async fn ensure_partition_count(
                 }
             }
         }
-        Err(e) => pb.println(format!(
-            "[Partitions] Kafka administrative error : {:?}",
-            e
-        )),
+        Err(e) => pb.println(format!("[Partitions] Kafka administrative error : {:?}", e)),
     }
 
     Ok(())
@@ -229,10 +226,7 @@ pub async fn ensure_topic_exists(
         return Ok(());
     }
 
-    pb.println(format!(
-        "[Topic] Creating missing topic : '{}'",
-        topic_name
-    ));
+    pb.println(format!("[Topic] Creating missing topic : '{}'", topic_name));
 
     let mut new_topic = NewTopic::new(topic_name, 1, TopicReplication::Fixed(-1));
 
@@ -300,11 +294,7 @@ mod tests {
         ];
 
         let result = write_parquet(path, messages.clone(), Compression::UNCOMPRESSED, false);
-        assert!(
-            result.is_ok(),
-            "Parquet writing failed: {:?}",
-            result.err()
-        );
+        assert!(result.is_ok(), "Parquet writing failed: {:?}", result.err());
 
         let metadata = std::fs::metadata(path).unwrap();
         assert!(metadata.len() > 0);

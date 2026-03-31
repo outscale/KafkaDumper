@@ -9,10 +9,14 @@ permissions:
   contents: read
 
 env:
-  RUST_VERSION: "1.77.0"
+  RUST_VERSION: "1.94.0"
 
 jobs:
+  run-pr-checks:
+    uses: ./.github/workflows/pr-checks.yml
+
   build-linux:
+    needs: run-pr-checks
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6.0.2
@@ -42,6 +46,7 @@ jobs:
           path: dist/
 
   build-macos:
+    needs: run-pr-checks
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v6.0.2

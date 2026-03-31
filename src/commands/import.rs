@@ -69,8 +69,7 @@ pub async fn import_messages(config: &ImportConfiguration) -> anyhow::Result<()>
     let mut total_rows = 0;
 
     for path in &expanded_paths {
-        let file = File::open(path)
-            .with_context(|| format!("Unable to open file {:?}", path))?;
+        let file = File::open(path).with_context(|| format!("Unable to open file {:?}", path))?;
         let builder = ParquetRecordBatchReaderBuilder::try_new(file)?;
         total_rows += builder.metadata().file_metadata().num_rows();
     }
@@ -89,13 +88,10 @@ pub async fn import_messages(config: &ImportConfiguration) -> anyhow::Result<()>
     let mut schema_cache: HashMap<String, String> = HashMap::new();
 
     for input_path in &expanded_paths {
-        pb.set_message(format!(
-            "Processing {:?}",
-            input_path.file_name().unwrap()
-        ));
+        pb.set_message(format!("Processing {:?}", input_path.file_name().unwrap()));
 
-        let file = File::open(input_path)
-            .with_context(|| format!("Error opening {:?}", input_path))?;
+        let file =
+            File::open(input_path).with_context(|| format!("Error opening {:?}", input_path))?;
         let builder = ParquetRecordBatchReaderBuilder::try_new(file)?;
         let reader = builder.build()?;
 
@@ -254,10 +250,7 @@ pub async fn import_messages(config: &ImportConfiguration) -> anyhow::Result<()>
                             has_valid_json = true;
                         }
                         Err(e) => {
-                            pb.println(format!(
-                                "JSON parsing error (Topic: {}): {:?}",
-                                topic, e
-                            ));
+                            pb.println(format!("JSON parsing error (Topic: {}): {:?}", topic, e));
                             continue;
                         }
                     }

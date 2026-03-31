@@ -3,12 +3,13 @@ name: PR Checks (Test & Lint)
 on:
   pull_request:
     branches: [main]
+  workflow_call:
 
 permissions:
   contents: read
 
 env:
-  RUST_VERSION: "1.77.0"
+  RUST_VERSION: "1.94.0"
 
 jobs:
   lint:
