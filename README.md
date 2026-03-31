@@ -72,31 +72,44 @@ cargo run -- import ...
 ### Export
 
 ```bash
-Exporter un ou plusieurs topics
+Export one or more topics
 
 Usage: kafkadumper export [OPTIONS] --topics <TOPICS>
 
 Options:
-  -b, --broker <BROKER>              Kafka broker [default: localhost:9092]
-  -t, --topics <TOPICS>              Nom des topics à exporter
-  -o, --output <OUTPUT>              Nom du fichier d output [default: output]
-  -p, --partitions <PARTITIONS>      Partitions spécifiques (format: 1,2,...)
-  -n, --max-messages <MAX_MESSAGES>  Nombre maximum de messages à exporter
-      --tail                         Mode tail: Récupérer les messages depuis la fin
-  -d, --days <DAYS>                  Exporter seulement les N derniers jours
-  -g, --group-id <GROUP_ID>          Group ID pour le consumer [default: kafka-dumper]
-  -c, --compression <COMPRESSION>    Compression algorithm(level) (https://arrow.apache.org/rust/parquet/basic/enum.Compression.html#variants) [default: uncompressed]
-  -s, --split <SPLIT>                Nombre de messages par fichier [default: 0]
+  -b, --broker <BROKER>
+          Kafka broker [default: localhost:9092]
+  -t, --topics <TOPICS>
+          Names of topics to export
+  -o, --output <OUTPUT>
+          Output file name
+  -p, --partitions <PARTITIONS>
+          Specific partitions (format: 1, 2, ...)
+  -n, --max-messages <MAX_MESSAGES>
+          Maximum number of messages to export
+      --tail
+          Tail mode: Retrieve messages from the end
+  -d, --days <DAYS>
+          Export only the last N days
+  -g, --group-id <GROUP_ID>
+          Group ID for the consumer [default: kafka-dumper]
+  -c, --compression <COMPRESSION>
+          Compression algorithm(level) (https://arrow.apache.org/rust/parquet/basic/enum.Compression.html#variants) [default: uncompressed]
+  -s, --split <SPLIT>
+          Number of messages per file [default: 0]
   -u, --use-schema-registry <USE_SCHEMA_REGISTRY>
-                                     Utiliser le schéma registry pour ajouter le message décodé
-      --start-offset <START_OFFSET>  Offset de départ (priorité sur propriétés days et tails)
-      --end-offset <END_OFFSET>      Arrêt de consommation par partition
-  -h, --help                         Print help
+          Use the registry schema to add the decoded message
+      --start-offset <START_OFFSET>
+          Initial offset (takes precedence over the `days` and `tails` properties)
+      --end-offset <END_OFFSET>
+          Stop consumption by partition
+  -h, --help
+          Print help
 ```
 
-Priorité de configuration : Si `start_offset` est défini, `days` et `tail` sont ignorés.
+Configuration priority: If `start_offset` is set, `days` and `tail` are ignored.
 
-Exemple d'utilisation
+Example of use
 
 ```bash
 ./kafkadumper export -b kafka.prod-confluent.svc.cluster.local:9092 \
@@ -113,43 +126,43 @@ Exemple d'utilisation
 Output
 
 ```
-🚀 Démarrage de l'export des topics: ["dlq-gino-nexus", "dlq-gino-fortinet"]
-Mode Tail : Récupération des 100 derniers messages par partition
-⠁ [00:00:00] Messages lus: 200                                                                        Tri final : conservation des 100 messages demandés (sur 200 lus)...
-  [00:00:00] ✅ 100 messages exportés au total                                                        Découpage des 100 messages en lots de 30...
-  Écriture partie 1 (30 messages) -> output-dlq-part-001.parquet
-  Écriture partie 2 (30 messages) -> output-dlq-part-002.parquet
-  Écriture partie 3 (30 messages) -> output-dlq-part-003.parquet
-  Écriture partie 4 (10 messages) -> output-dlq-part-004.parquet
-✅ Export terminé avec succès!
+🚀 Starting export of topics: ["dlq-gino-nexus", "dlq-gino-fortinet"]
+Tail mode: Fetching the last 100 messages per partition
+⠁ [00:00:00] Messages read: 200                                                                        Tri final : conservation des 100 messages demandés (sur 200 lus)...
+  [00:00:00] ✅ 100 messages exported in total                                                        Découpage des 100 messages en lots de 30...
+  Writing part 1 (30 messages) -> output-dlq-part-001.parquet
+  Writing part 2 (30 messages) -> output-dlq-part-002.parquet
+  Writing part 3 (30 messages) -> output-dlq-part-003.parquet
+  Writing part 4 (10 messages) -> output-dlq-part-004.parquet
+✅ Export completed successfully!
 ```
 
 
 ### Import
 
 ```bash
-Importer des messages dans un topic
+Import messages into a topic
 
-Usage: kafkadumper import [OPTIONS] --input <INPUT>
+Usage: kafkadumper import [OPTIONS] --inputs <INPUTS>
 
 Options:
   -b, --broker <BROKER>
           Kafka broker [default: localhost:9092]
   -i, --inputs <INPUTS>
-          Fichiers d'input
+          Input files
   -T, --target-topic <TARGET_TOPIC>
-          Remapper le topic de destination (optionnel)
+          Remap the destination topic
       --max-message-bytes <MAX_MESSAGE_BYTES>
-          Paramètre 'message.max.bytes' (topic et producer) : 1Mib=104857600
+          'message.max.bytes' parameter (topic and producer): 1 MiB = 10,485,760 bytes
       --use-original-topic
-          Importer chaque message dans son topic initial
+          Move each message back to its original thread
       --use-schema-registry <USE_SCHEMA_REGISTRY>
-          Importer les messages à partir du json (parsing dynamique)
+          Import messages from JSON (dynamic parsing)
   -h, --help
           Print help
 ```
 
-Exemple d'utilisation
+Example of use
 
 ```bash
 ./kafkadumper import -b kafka.dev-confluent.svc.cluster.local:9092 \
@@ -158,7 +171,7 @@ Exemple d'utilisation
   -T dlq-nexus-fortinet
 ```
 
-<details><summary>Alternative séparateur</summary><p>
+<details><summary>Alternative separator</summary><p>
 
 ```bash
 ./kafkadumper import -b kafka.dev-confluent.svc.cluster.local:9092 \
@@ -168,7 +181,7 @@ Exemple d'utilisation
 </p></details>
 
 <details><summary>Alternative blob</summary><p>
-Attention: ici, les quotes sont absolument nécessaire
+Note: The quotation marks are absolutely necessary here
 
 ```bash
 ./kafkadumper import -b kafka.dev-confluent.svc.cluster.local:9092 \
@@ -177,39 +190,39 @@ Attention: ici, les quotes sont absolument nécessaire
 ```
 </p></details>
 
-<details><summary>Alternative topic par défaut</summary><p>
-> Note: Chaque message sera importé dans le topic dans lequel il était initialement.
+<details><summary>Alternative default topic</summary><p>
+> Note: Each message will be imported into the thread where it was originally posted.
 
 ```bash
 ./kafkadumper import -b kafka.dev-confluent.svc.cluster.local:9092 \
   -i 'output-dlq-*.parquet' \
-  --use-original-topic # optionnel
+  --use-original-topic # optional
 ```
 </p></details>
 
 ```
-🚀 Démarrage de l'import...
-📂 Fichiers identifiés : 2
-[Topic] Création du topic manquant : 'dlq-nexus-fortinet'
-✅ Topic 'dlq-nexus-fortinet' créé avec succès.
-  [00:00:05] [████████████████████████████████████████] 30/30 (temps estimé : 0s)   
+🚀 Starting import...
+📂 Files found : 2
+[Topic] Creating missing topic : 'dlq-nexus-fortinet'
+✅ Topic 'dlq-nexus-fortinet' created successfully.
+  [00:00:05] [████████████████████████████████████████] 30/30 (estimated time : 0s)   
 ```
 
 ### Inspect
 
 ```bash
-Analyser un fichier de dump sans importer
+Analyze a dump file without importing it
 
 Usage: kafkadumper inspect [OPTIONS] --input <INPUT>
 
 Options:
-  -i, --input <INPUT>  Fichier d input
-  -c, --count <COUNT>  Information mise à jour de vérification [default: 100]
-  -v, --verbose        Afficher le détail de chaque message
+  -i, --input <INPUT>  Input file
+  -c, --count <COUNT>  Updated verification information [default: 100]
+  -v, --verbose        View the details of each message
   -h, --help           Print help
 ```
 
-Exemple d'utilisation
+Example of use
 
 ```bash
 ./kafkadumper inspect -i output-dlq-part-002.parquet 
@@ -218,20 +231,20 @@ Exemple d'utilisation
 Output
 
 ```
-RAPPORT D'INSPECTION : output-dlq-part-002.parquet
+INSPECTION REPORT : output-dlq-part-002.parquet
 --------------------------------------------------
 Format        : Apache Parquet
-Créé par      : parquet-rs version 57.2.0
-Total lignes  : 30
+Created by    : parquet-rs version 57.2.0
+Total rows    : 30
 --------------------------------------------------
 
 --------------------------------------------------
-Topics trouvés : {"dlq-gino-fortinet", "dlq-gino-nexus"}
- TRI (TIMESTAMP) : + Croissant (Du plus ancien au plus récent)
-   Début (Min)    : 28/01/2026 16:39:56 (+01:00) (ts: 1769614796710)
-   Fin (Max)      : 28/01/2026 16:45:33 (+01:00) (ts: 1769615133804)
+Topics found : {"dlq-gino-fortinet", "dlq-gino-nexus"}
+ SORT (TIMESTAMP) : + Ascending (From oldest to newest)
+   Start (Min)    : 28/01/2026 16:39:56 (+01:00) (ts: 1769614796710)
+   End (Max)      : 28/01/2026 16:45:33 (+01:00) (ts: 1769615133804)
 --------------------------------------------------
-✅ Vérification réussie : 30 messages valides lus (conforme aux métadonnées Parquet).
+✅ Verification successful : 30 valid messages read (compliant with Parquet metadata).
 ```
 
 ---

@@ -18,12 +18,12 @@ use std::path::PathBuf;
 use tokio::time::sleep;
 
 pub async fn import_messages(config: &ImportConfiguration) -> anyhow::Result<()> {
-    println!("🚀 Démarrage de l'import...");
+    println!("🚀 Starting import...");
 
     let mut expanded_paths: Vec<PathBuf> = Vec::new();
 
     for pattern in &config.inputs {
-        let paths = glob(pattern).context(format!("Pattern invalide : {}", pattern))?;
+        let paths = glob(pattern).context(format!("Invalid pattern : {}", pattern))?;
 
         let mut found = false;
         for entry in paths {
@@ -32,25 +32,25 @@ pub async fn import_messages(config: &ImportConfiguration) -> anyhow::Result<()>
                     expanded_paths.push(path);
                     found = true;
                 }
-                Err(e) => println!("Erreur de lecture sur un fichier du pattern : {:?}", e),
+                Err(e) => println!("Read error on a file from the pattern : {:?}", e),
             }
         }
 
         if !found {
-            println!("Aucun fichier trouvé pour le pattern : {}", pattern);
+            println!("No file found for the pattern : {}", pattern);
         }
     }
 
     if expanded_paths.is_empty() {
-        return Err(anyhow::anyhow!("Aucun fichier valide trouvé en entrée."));
+        return Err(anyhow::anyhow!("No valid file found in input."));
     }
 
-    println!("📂 Fichiers trouvé : {}", expanded_paths.len());
+    println!("📂 Files found : {}", expanded_paths.len());
 
     let admin: AdminClient<DefaultClientContext> = ClientConfig::new()
         .set("bootstrap.servers", &config.broker)
         .create()
-        .context("Échec de création de l'AdminClient")?;
+        .context("Failed to create AdminClient")?;
 
     let mut client_config = ClientConfig::new();
     client_config
@@ -70,12 +70,12 @@ pub async fn import_messages(config: &ImportConfiguration) -> anyhow::Result<()>
 
     for path in &expanded_paths {
         let file = File::open(path)
-            .with_context(|| format!("Impossible d'ouvrir le fichier {:?}", path))?;
+            .with_context(|| format!("Unable to open file {:?}", path))?;
         let builder = ParquetRecordBatchReaderBuilder::try_new(file)?;
         total_rows += builder.metadata().file_metadata().num_rows();
     }
 
-    println!("📊 Total de messages à traiter : {}", total_rows);
+    println!("📊 Total messages to process : {}", total_rows);
 
     let pb = ProgressBar::new(total_rows as u64);
     pb.set_style(
@@ -90,17 +90,17 @@ pub async fn import_messages(config: &ImportConfiguration) -> anyhow::Result<()>
 
     for input_path in &expanded_paths {
         pb.set_message(format!(
-            "Traitement de {:?}",
+            "Processing {:?}",
             input_path.file_name().unwrap()
         ));
 
         let file = File::open(input_path)
-            .with_context(|| format!("Erreur lors de l'ouverture de {:?}", input_path))?;
+            .with_context(|| format!("Error opening {:?}", input_path))?;
         let builder = ParquetRecordBatchReaderBuilder::try_new(file)?;
         let reader = builder.build()?;
 
         for batch_result in reader {
-            let batch = batch_result.context("Erreur de lecture d'un batch")?;
+            let batch = batch_result.context("Error reading a batch")?;
 
             let col_topic = batch
                 .column(0)
@@ -198,7 +198,7 @@ pub async fn import_messages(config: &ImportConfiguration) -> anyhow::Result<()>
                                     Ok(s) => s,
                                     Err(e) => {
                                         eprintln!(
-                                            "Impossible de récupérer le schéma {} {} {} {}",
+                                            "Unable to retrieve schema {} {} {} {}",
                                             header.schema_id, e, topic, partition
                                         );
 
@@ -228,7 +228,7 @@ pub async fn import_messages(config: &ImportConfiguration) -> anyhow::Result<()>
                         .client()
                         .fetch_metadata(Some(topic), std::time::Duration::from_secs(10))
                     {
-                        pb.println(format!("Erreur fetch metadata : {}", e));
+                        pb.println(format!("Error fetching metadata : {}", e));
                     }
 
                     topic_partition_cache.insert(topic_key.clone(), needed_partitions);
@@ -255,7 +255,7 @@ pub async fn import_messages(config: &ImportConfiguration) -> anyhow::Result<()>
                         }
                         Err(e) => {
                             pb.println(format!(
-                                "Erreur de parsing JSON (Topic: {}): {:?}",
+                                "JSON parsing error (Topic: {}): {:?}",
                                 topic, e
                             ));
                             continue;
@@ -317,7 +317,7 @@ pub async fn import_messages(config: &ImportConfiguration) -> anyhow::Result<()>
                         }
                         Err((KafkaError::PartitionEOF(_), _)) => {
                             pb.println(format!(
-                                "Partition inconnue (tentative {}/{}), rafraichissement...",
+                                "Unknown partition (attempt {}/{}), refreshing...",
                                 attempt + 1,
                                 max_retries
                             ));
@@ -329,7 +329,7 @@ pub async fn import_messages(config: &ImportConfiguration) -> anyhow::Result<()>
                         }
                         Err((e, _)) => {
                             pb.println(format!(
-                                "Erreur fatale send (Topic: {}, Part: {}): {:?}",
+                                "Fatal send error (Topic: {}, Part: {}): {:?}",
                                 topic, partition, e
                             ));
                             break;
@@ -339,7 +339,7 @@ pub async fn import_messages(config: &ImportConfiguration) -> anyhow::Result<()>
 
                 if !sent {
                     pb.println(format!(
-                        "Message perdu (Topic: {}, Part: {})",
+                        "Message lost (Topic: {}, Part: {})",
                         topic, partition
                     ));
                 }
@@ -348,8 +348,8 @@ pub async fn import_messages(config: &ImportConfiguration) -> anyhow::Result<()>
         }
     }
 
-    pb.set_message("Flush des derniers messages...");
+    pb.set_message("Flushing last messages...");
     producer.flush(std::time::Duration::from_secs(30))?;
-    pb.finish_with_message("✅ Import terminé avec succès !");
+    pb.finish_with_message("✅ Import completed successfully !");
     Ok(())
 }

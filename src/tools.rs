@@ -153,7 +153,7 @@ pub fn write_parquet(
         .set_compression(compression)
         .build();
 
-    let file = File::create(path).context("Impossible de créer le fichier Parquet")?;
+    let file = File::create(path).context("Unable to create Parquet file")?;
     let mut writer = ArrowWriter::try_new(file, schema_ref, Some(props))?;
 
     writer.write(&batch)?;
@@ -171,7 +171,7 @@ pub async fn ensure_partition_count(
     let metadata = admin
         .inner()
         .fetch_metadata(Some(topic_name), StdDuration::from_secs(5))
-        .context("Échec récupération metadata des partitions")?;
+        .context("Failed to retrieve partition metadata")?;
 
     let current_partitions = metadata
         .topics()
@@ -185,7 +185,7 @@ pub async fn ensure_partition_count(
     }
 
     pb.println(format!(
-        "[Partitions] Extension du topic '{}' : {} -> {} partitions...",
+        "[Partitions] Extending topic '{}' : {} -> {} partitions...",
         topic_name, current_partitions, needed_partitions
     ));
 
@@ -196,13 +196,13 @@ pub async fn ensure_partition_count(
         Ok(results) => {
             for result in results {
                 match result {
-                    Ok(_) => pb.println("[Partitions] Partitions augmentées."),
-                    Err((_, err)) => pb.println(format!("Erreur extension partitions : {:?}", err)),
+                    Ok(_) => pb.println("[Partitions] Partitions increased."),
+                    Err((_, err)) => pb.println(format!("Error extending partitions : {:?}", err)),
                 }
             }
         }
         Err(e) => pb.println(format!(
-            "[Partitions] Erreur administrative Kafka : {:?}",
+            "[Partitions] Kafka administrative error : {:?}",
             e
         )),
     }
@@ -230,7 +230,7 @@ pub async fn ensure_topic_exists(
     }
 
     pb.println(format!(
-        "[Topic] Création du topic manquant : '{}'",
+        "[Topic] Creating missing topic : '{}'",
         topic_name
     ));
 
@@ -246,16 +246,16 @@ pub async fn ensure_topic_exists(
         Ok(results) => {
             for result in results {
                 match result {
-                    Ok(_) => pb.println(format!("✅ Topic '{}' créé avec succès.", topic_name)),
+                    Ok(_) => pb.println(format!("✅ Topic '{}' created successfully.", topic_name)),
                     Err((name, err)) => pb.println(format!(
-                        "[Topic] Erreur création topic '{}': {:?}",
+                        "[Topic] Error creating topic '{}': {:?}",
                         name, err
                     )),
                 }
             }
         }
         Err(e) => pb.println(format!(
-            "[Topic] Erreur administrative Kafka lors de la création : {:?}",
+            "[Topic] Kafka administrative error during creation : {:?}",
             e
         )),
     }
@@ -302,7 +302,7 @@ mod tests {
         let result = write_parquet(path, messages.clone(), Compression::UNCOMPRESSED, false);
         assert!(
             result.is_ok(),
-            "L'écriture Parquet a échoué: {:?}",
+            "Parquet writing failed: {:?}",
             result.err()
         );
 
@@ -343,7 +343,7 @@ mod tests {
         assert_eq!(
             schema_no_json.fields().len(),
             7,
-            "Le fichier doit contenir exactement 7 colonnes"
+            "File must contain exactly 7 columns"
         );
 
         write_parquet(
@@ -361,11 +361,11 @@ mod tests {
         assert_eq!(
             schema_with_json.fields().len(),
             8,
-            "Le fichier doit contenir exactement 8 colonnes (json_field true)"
+            "File must contain exactly 8 columns (json_field true)"
         );
         assert!(
             schema_with_json.field_with_name("json").is_ok(),
-            "colonne 'json' manquante"
+            "'json' column missing"
         );
     }
 }

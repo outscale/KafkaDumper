@@ -10,21 +10,21 @@ use std::path::PathBuf;
 const DATE_FORMAT: &str = "%d/%m/%Y %H:%M:%S (%Z)";
 
 pub fn inspect_dump(input: PathBuf, count: usize, verbose: bool) -> anyhow::Result<()> {
-    let file = File::open(&input).context("Échec d'ouverture du fichier Parquet")?;
+    let file = File::open(&input).context("Failed to open Parquet file")?;
 
     // métadonnées sans lire tout le fichier
     let builder = ParquetRecordBatchReaderBuilder::try_new(file)
-        .context("Le fichier n'est pas un format Parquet valide")?;
+        .context("The file is not a valid Parquet format")?;
 
     let parquet_metadata = builder.metadata().file_metadata();
     let total_rows = parquet_metadata.num_rows();
-    let created_by = parquet_metadata.created_by().unwrap_or("Inconnu");
+    let created_by = parquet_metadata.created_by().unwrap_or("Unknown");
 
-    println!("RAPPORT D'INSPECTION : {}", input.display());
+    println!("INSPECTION REPORT : {}", input.display());
     println!("--------------------------------------------------");
     println!("Format        : Apache Parquet");
-    println!("Créé par      : {}", created_by);
-    println!("Total lignes  : {}", total_rows);
+    println!("Created by    : {}", created_by);
+    println!("Total rows    : {}", total_rows);
     println!("--------------------------------------------------");
 
     let reader = builder.build()?;
@@ -40,7 +40,7 @@ pub fn inspect_dump(input: PathBuf, count: usize, verbose: bool) -> anyhow::Resu
     let mut found_topics: HashSet<String> = HashSet::new();
 
     for batch_result in reader {
-        let batch = batch_result.context("Erreur de lecture d'un batch")?;
+        let batch = batch_result.context("Error reading a batch")?;
 
         let col_topic = batch
             .column(0)
@@ -130,7 +130,10 @@ pub fn inspect_dump(input: PathBuf, count: usize, verbose: bool) -> anyhow::Resu
                     len_disp
                 );
             } else if count > 0 && actual_count % count == 0 {
-                print!("\r  Vérification en cours... {} messages lus", actual_count);
+                print!(
+                    "\r  Verification in progress... {} messages read",
+                    actual_count
+                );
                 std::io::stdout().flush()?;
             }
         }
@@ -141,19 +144,19 @@ pub fn inspect_dump(input: PathBuf, count: usize, verbose: bool) -> anyhow::Resu
     }
 
     println!("--------------------------------------------------");
-    println!("Topics trouvés : {:?}", found_topics);
+    println!("Topics found : {:?}", found_topics);
 
-    print!(" TRI (TIMESTAMP) : ");
+    print!(" SORT (TIMESTAMP) : ");
     if actual_count == 0 {
-        println!("Vide");
+        println!("Empty");
     } else if is_increasing && is_decreasing {
-        println!("Tous les timestamps sont identiques");
+        println!("All timestamps are identical");
     } else if is_increasing {
-        println!("+ Croissant (Du plus ancien au plus récent)");
+        println!("+ Ascending (From oldest to newest)");
     } else if is_decreasing {
-        println!("- Décroissant (Du plus récent au plus ancien)");
+        println!("- Descending (From newest to oldest)");
     } else {
-        println!("!!! Non ordonné (Mélangé)");
+        println!("!!! Unordered (Mixed)");
     }
 
     if let (Some(min), Some(max)) = (min_ts, max_ts) {
@@ -164,12 +167,12 @@ pub fn inspect_dump(input: PathBuf, count: usize, verbose: bool) -> anyhow::Resu
         let max_local: DateTime<Local> = max_utc.with_timezone(&Local);
 
         println!(
-            "   Début (Min)    : {} (ts: {})",
+            "   Start (Min)    : {} (ts: {})",
             min_local.format(DATE_FORMAT),
             min
         );
         println!(
-            "   Fin (Max)      : {} (ts: {})",
+            "   End (Max)      : {} (ts: {})",
             max_local.format(DATE_FORMAT),
             max
         );
@@ -178,13 +181,13 @@ pub fn inspect_dump(input: PathBuf, count: usize, verbose: bool) -> anyhow::Resu
 
     if actual_count as i64 == total_rows {
         println!(
-            "✅ Vérification réussie : {} messages valides lus (conforme aux métadonnées Parquet).",
+            "✅ Verification successful : {} valid messages read (compliant with Parquet metadata).",
             actual_count
         );
     } else {
-        eprintln!("ATTENTION : Incohérence détectée !");
-        eprintln!("   Metadonnées Parquet : {}", total_rows);
-        eprintln!("   Lignes lues         : {}", actual_count);
+        eprintln!("WARNING : Inconsistency detected !");
+        eprintln!("   Parquet Metadata : {}", total_rows);
+        eprintln!("   Rows read        : {}", actual_count);
     }
 
     Ok(())

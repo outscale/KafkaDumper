@@ -25,7 +25,7 @@ impl KafkaProtobufConsumer {
 
         if !response.status().is_success() {
             return Err(anyhow!(
-                "Échec de récupération du schéma: {}",
+                "Failed to retrieve schema: {}",
                 response.status()
             ));
         }
@@ -44,7 +44,7 @@ impl KafkaProtobufConsumer {
 
         if !response.status().is_success() {
             return Err(anyhow!(
-                "Échec de récupération du schéma: {}",
+                "Failed to retrieve schema: {}",
                 response.status()
             ));
         }
@@ -70,7 +70,7 @@ impl KafkaProtobufConsumer {
                             Ok(s) => s,
                             Err(e) => {
                                 eprintln!(
-                                    "Impossible de récupérer le schéma {} {} {} {} {}",
+                                    "Unable to retrieve schema {} {} {} {} {}",
                                     header.schema_id,
                                     e,
                                     message.topic(),
@@ -95,12 +95,12 @@ impl KafkaProtobufConsumer {
                                     msg = Some(m);
                                 }
                                 Err(e) => {
-                                    eprintln!("Impossible de décoder '{}' : {}", msg_name, e);
+                                    eprintln!("Unable to decode '{}' : {}", msg_name, e);
                                 }
                             }
                         } else {
                             eprintln!(
-                                "Message introuvable dans le schéma {} : {}",
+                                "Message not found in schema {} : {}",
                                 header.schema_id, msg_name
                             );
                         }
@@ -109,7 +109,7 @@ impl KafkaProtobufConsumer {
                             Some(m) => m,
                             None => {
                                 return Err(anyhow!(
-                                    "Impossible de décoder le protobuf avec aucun des messages {}, {:?}",
+                                    "Unable to decode protobuf with any of the messages {}, {:?}",
                                     message.offset(),
                                     hex::encode(payload),
                                 ));
@@ -119,7 +119,7 @@ impl KafkaProtobufConsumer {
                         Ok(proto_dynamic_to_json(&msg))
                     } else {
                         Err(anyhow!(
-                            "Payload trop petit pour contenir des données protobuf (<={} octets)",
+                            "Payload too small to contain protobuf data (<={} bytes)",
                             header.position
                         ))
                     }
@@ -136,7 +136,7 @@ impl KafkaProtobufConsumer {
                 }
             }
         } else {
-            Err(anyhow!("Message sans payload."))
+            Err(anyhow!("Message without payload."))
         }
     }
 }
@@ -193,7 +193,7 @@ mod tests {
         let consumer = KafkaProtobufConsumer::new(url);
         let result = consumer.handle_to_json(&borrowed).await;
 
-        assert!(result.is_ok(), "Le parsing a échoué : {:?}", result.err());
+        assert!(result.is_ok(), "Parsing failed : {:?}", result.err());
         let json = result.unwrap();
         assert_eq!(json["name"], "Assim");
         assert_eq!(json["age"], 20);

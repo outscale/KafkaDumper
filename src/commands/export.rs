@@ -17,7 +17,7 @@ use std::str::FromStr;
 use std::time::Duration as StdDuration;
 
 pub async fn export_topics(config: &ExportConfiguration) -> anyhow::Result<()> {
-    println!("🚀 Démarrage de l'export des topics: {:?}", config.topics);
+    println!("🚀 Starting export of topics: {:?}", config.topics);
 
     let consumer: StreamConsumer = ClientConfig::new()
         .set("bootstrap.servers", &config.broker)
@@ -27,7 +27,7 @@ pub async fn export_topics(config: &ExportConfiguration) -> anyhow::Result<()> {
         .set("enable.partition.eof", "true")
         .set("socket.timeout.ms", "60000")
         .create()
-        .context("Échec de création du consumer")?;
+        .context("Failed to create consumer")?;
 
     let mut tpl = TopicPartitionList::new();
 
@@ -39,7 +39,7 @@ pub async fn export_topics(config: &ExportConfiguration) -> anyhow::Result<()> {
         } else {
             let metadata = consumer
                 .fetch_metadata(Some(topic), StdDuration::from_secs(30))
-                .context("Échec de récupération des métadonnées")?;
+                .context("Failed to retrieve metadata")?;
 
             if let Some(topic_metadata) = metadata.topics().iter().find(|t| t.name() == topic) {
                 for partition in topic_metadata.partitions() {
@@ -56,13 +56,13 @@ pub async fn export_topics(config: &ExportConfiguration) -> anyhow::Result<()> {
         .collect();
 
     if let Some(start) = config.start_offset {
-        println!("Export à partir de l'offset {}...", start);
+        println!("Export from offset {}...", start);
         for (topic, partition) in &elements {
             tpl.set_partition_offset(topic, *partition, Offset::Offset(start))
                 .ok();
         }
     } else if let Some(d) = config.days {
-        println!("Calcul des offsets pour les {} derniers jours...", d);
+        println!("Calculating offsets for the last {} days...", d);
         let target_time = Utc::now() - Duration::days(d);
         let timestamp_ms = target_time.timestamp_millis();
 
@@ -77,7 +77,7 @@ pub async fn export_topics(config: &ExportConfiguration) -> anyhow::Result<()> {
         let limit_per_part = total_limit as i64;
 
         println!(
-            "Mode Tail : Récupération des {} derniers messages par partition",
+            "Tail mode: Fetching the last {} messages per partition",
             limit_per_part
         );
 
@@ -88,20 +88,20 @@ pub async fn export_topics(config: &ExportConfiguration) -> anyhow::Result<()> {
         for (topic, partition) in &elements {
             let (low, high) = consumer
                 .fetch_watermarks(topic, *partition, StdDuration::from_secs(30))
-                .context(format!("Échec watermarks {}:{}", topic, partition))?;
+                .context(format!("Failed to fetch watermarks {}:{}", topic, partition))?;
 
             let start_offset = std::cmp::max(low, high - limit_per_part);
             tpl.set_partition_offset(topic, *partition, Offset::Offset(start_offset))?;
         }
     } else {
-        println!("Export depuis le début...");
+        println!("Export from the beginning...");
         for (topic, partition) in &elements {
             tpl.set_partition_offset(topic, *partition, Offset::Beginning)
                 .ok();
         }
     }
 
-    consumer.assign(&tpl).context("Échec d'assignation")?;
+    consumer.assign(&tpl).context("Assignment failed")?;
 
     let total_partitions = tpl.count();
     let pb = ProgressBar::new_spinner();
@@ -160,7 +160,7 @@ pub async fn export_topics(config: &ExportConfiguration) -> anyhow::Result<()> {
                 messages.push(kafka_msg);
 
                 if messages.len() % 100 == 0 {
-                    pb.set_message(format!("Messages lus: {}", messages.len()));
+                    pb.set_message(format!("Messages read: {}", messages.len()));
                 }
             }
             Err(e) => match e {
@@ -170,14 +170,14 @@ pub async fn export_topics(config: &ExportConfiguration) -> anyhow::Result<()> {
                         break;
                     }
                 }
-                _ => eprintln!("Erreur lecture: {:?}", e),
+                _ => eprintln!("Read error: {:?}", e),
             },
         }
     }
 
     if messages.is_empty() {
         println!(
-            "Aucun message récupéré dans les topics {:?}.",
+            "No messages retrieved from topics {:?}.",
             config.topics
         );
         return Ok(());
@@ -185,7 +185,7 @@ pub async fn export_topics(config: &ExportConfiguration) -> anyhow::Result<()> {
 
     if let Some(max) = config.max_messages {
         println!(
-            "Tri final : conservation des {} messages demandés (sur {} lus)...",
+            "Final sorting: keeping {} requested messages (out of {} read)...",
             max,
             messages.len()
         );
@@ -202,10 +202,10 @@ pub async fn export_topics(config: &ExportConfiguration) -> anyhow::Result<()> {
         }
     }
 
-    pb.finish_with_message(format!("✅ {} messages exportés au total", messages.len()));
+    pb.finish_with_message(format!("✅ {} messages exported in total", messages.len()));
 
     let compression = Compression::from_str(config.compression.as_str()).unwrap_or_else(|e| {
-        eprintln!("{}\nLe fichier ne sera pas compressé.", e);
+        eprintln!("{}\nThe file will not be compressed.", e);
         Compression::UNCOMPRESSED
     });
 
@@ -243,7 +243,7 @@ pub async fn export_topics(config: &ExportConfiguration) -> anyhow::Result<()> {
 
     if batch_size > 0 && messages.len() > batch_size {
         println!(
-            "Découpage des {} messages en lots de {}...",
+            "Splitting {} messages into batches of {}...",
             messages.len(),
             batch_size
         );
@@ -262,7 +262,7 @@ pub async fn export_topics(config: &ExportConfiguration) -> anyhow::Result<()> {
             let part_path = output_path.with_file_name(new_filename);
 
             println!(
-                "  Écriture partie {} ({} messages) -> {}",
+                "  Writing part {} ({} messages) -> {}",
                 part_number,
                 chunk.len(),
                 part_path.display()
@@ -277,7 +277,7 @@ pub async fn export_topics(config: &ExportConfiguration) -> anyhow::Result<()> {
         }
     } else {
         println!(
-            "Écriture dans le fichier unique {}...",
+            "Writing to single file {}...",
             output_path.display()
         );
         write_parquet(
@@ -288,6 +288,6 @@ pub async fn export_topics(config: &ExportConfiguration) -> anyhow::Result<()> {
         )?;
     }
 
-    println!("✅ Export terminé avec succès!");
+    println!("✅ Export completed successfully!");
     Ok(())
 }

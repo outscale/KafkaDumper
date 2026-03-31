@@ -8,7 +8,7 @@ use std::path::PathBuf;
 
 #[derive(Parser)]
 #[command(name = "kafka-dump", version)]
-#[command(about = "Outil pour dumper et restore des topics Kafka", long_about = None)]
+#[command(about = "Tool for dumping and restoring Kafka topics", long_about = None)]
 struct Cli {
     #[command(subcommand)]
     command: Commands,
@@ -16,37 +16,37 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
-    /// Exporter un ou plusieurs topics
+    /// Export one or more topics
     Export {
         /// Kafka broker
         #[arg(short, long, default_value = "localhost:9092")]
         broker: String,
 
-        /// Nom des topics à exporter
+        /// Names of topics to export
         #[arg(short, long, required = true, value_delimiter = ',')]
         topics: Vec<String>,
 
-        /// Nom du fichier d'output
+        /// Output file name
         #[arg(short, long)]
         output: Option<PathBuf>,
 
-        /// Partitions spécifiques (format: 1,2,...)
+        /// Specific partitions (format: 1, 2, ...)
         #[arg(short, long, value_delimiter = ',')]
         partitions: Option<Vec<i32>>,
 
-        /// Nombre maximum de messages à exporter
+        /// Maximum number of messages to export
         #[arg(short = 'n', long)]
         max_messages: Option<usize>,
 
-        /// Mode tail: Récupérer les messages depuis la fin
+        /// Tail mode: Retrieve messages from the end
         #[arg(long, default_value = "false")]
         tail: bool,
 
-        /// Exporter seulement les N derniers jours
+        /// Export only the last N days
         #[arg(short, long)]
         days: Option<i64>,
 
-        /// Group ID pour le consumer
+        /// Group ID for the consumer
         #[arg(short, long, default_value = "kafka-dumper")]
         group_id: String,
 
@@ -54,59 +54,59 @@ enum Commands {
         #[arg(short, long, default_value = "uncompressed")]
         compression: String,
 
-        /// Nombre de messages par fichier
+        /// Number of messages per file
         #[arg(short, long, default_value = "0")]
         split: usize,
 
-        /// Utiliser le schéma registry pour ajouter le message décodé
+        /// Use the registry schema to add the decoded message
         #[arg(short, long)]
         use_schema_registry: Option<String>,
 
-        /// Offset de départ (priorité sur propriétés days et tails)
+        /// Initial offset (takes precedence over the `days` and `tails` properties)
         #[arg(long)]
         start_offset: Option<i64>,
 
-        /// Arrêt de consommation par partition
+        /// Stop consumption by partition
         #[arg(long)]
         end_offset: Option<i64>,
     },
-    /// Importer des messages dans un topic
+    /// Import messages into a topic
     Import {
         /// Kafka broker
         #[arg(short, long, default_value = "localhost:9092")]
         broker: String,
 
-        /// Fichiers d'input
+        /// Input files
         #[arg(short, long, required = true, value_delimiter = ',')]
         inputs: Vec<String>,
 
-        /// Remapper le topic de destination (optionnel)
+        /// Remap the destination topic
         #[arg(short = 'T', long)]
         target_topic: Option<String>,
 
-        /// Paramètre 'message.max.bytes' (topic et producer) : 1Mib=104857600
+        /// 'message.max.bytes' parameter (topic and producer): 1 MiB = 10,485,760 bytes
         #[arg(long)]
         max_message_bytes: Option<String>, // 1Mib=104857600
 
-        /// Importer chaque message dans son topic initial
+        /// Move each message back to its original thread
         #[arg(long, default_value = "false")]
         use_original_topic: bool,
 
-        /// Importer les messages à partir du json (parsing dynamique)
+        /// Import messages from JSON (dynamic parsing)
         #[arg(long)]
         use_schema_registry: Option<String>,
     },
-    /// Analyser un fichier de dump sans importer
+    /// Analyze a dump file without importing it
     Inspect {
-        /// Fichier d'input
+        /// Input file
         #[arg(short, long)]
         input: PathBuf,
 
-        /// Information mise à jour de vérification
+        /// Updated verification information
         #[arg(short, long, default_value = "100")]
         count: usize,
 
-        /// Afficher le détail de chaque message
+        /// View the details of each message
         #[arg(short, long, default_value = "false")]
         verbose: bool,
     },

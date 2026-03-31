@@ -93,7 +93,7 @@ pub async fn prepare_descriptor_pool(schema: &str) -> anyhow::Result<DescriptorP
 
     if let Err(e) = fs::write(&temp_path, &schema).await {
         eprintln!(
-            "Écriture du fichier temporaire échouée {} {}",
+            "Failed to write temporary file {} {}",
             temp_path.display(),
             e
         );
@@ -137,7 +137,7 @@ pub async fn prepare_schema_descriptor(
 
     let descriptor = pool
         .get_message_by_name(msg_name)
-        .ok_or_else(|| anyhow::anyhow!("Message '{}' introuvable dans le schéma", msg_name))?;
+        .ok_or_else(|| anyhow::anyhow!("Message '{}' not found in schema", msg_name))?;
 
     Ok(descriptor)
 }
