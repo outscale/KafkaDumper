@@ -40,5 +40,5 @@ prost-reflect = { version = "0.15", features = ["serde"] }
 prost = "0.13.5"
 
 [dev-dependencies]
-mockito = "1.2.0"
-tempfile = "3.25.0"
+mockito = "=1.2.0"
+tempfile = "=3.25.0"
