@@ -35,7 +35,7 @@ glob = "0.3"
 serde_json = "1.0.149"
 hex = "0.4.3"
 reqwest = "0.13"
-protox = "0.8"
+protox = "0.9"
 prost-reflect = { version = "0.15", features = ["serde"] }
 prost = "0.13.5"
 
