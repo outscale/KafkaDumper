@@ -37,7 +37,7 @@ hex = "0.4.3"
 reqwest = "0.13"
 protox = "0.8"
 prost-reflect = { version = "0.15", features = ["serde"] }
-prost = "0.13.5"
+prost = "0.14.0"
 
 libz-sys = { version = "1", features = ["static"], default-features = false }
 flate2 = { version = "1", features = ["zlib"], default-features = false }
