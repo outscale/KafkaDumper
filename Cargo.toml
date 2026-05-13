@@ -43,5 +43,5 @@ libz-sys = { version = "1", features = ["static"], default-features = false }
 flate2 = { version = "1", features = ["zlib"], default-features = false }
 
 [dev-dependencies]
-mockito = "1.2.0"
-tempfile = "3.25.0"
+mockito = "=1.2.0"
+tempfile = "=3.25.0"
