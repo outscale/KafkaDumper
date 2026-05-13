@@ -1,6 +1,6 @@
 [package]
 name = "kafka-dumper"
-version = "0.2.6"
+version = "0.2.7"
 edition = "2024"
 authors = ["Outscale Infrastructure"]
 readme = "README.md"
