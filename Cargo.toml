@@ -44,4 +44,4 @@ flate2 = { version = "1", features = ["zlib"], default-features = false }
 
 [dev-dependencies]
 mockito = "=1.7.2"
-tempfile = "=3.25.0"
+tempfile = "=3.27.0"
